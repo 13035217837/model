@@ -1,0 +1,56 @@
+docker run \
+    -d  \  后台运行
+    --runtime nvidia \ 
+    --gpus all \ 使用宿主机上的所有GPU资源
+    -v file_path:/models/Qwen3-14B \ 将宿主机的{file_path}目录挂载到容器内的/models/Qwen3-14B目录
+    -p 8000:8000 \  宿主机8000端口映射到容器的8000端口
+    --name qwen3-14b \  容器名成
+    vllm/vllm-openai:latest \
+    --model /models/Qwen3-14B \  指定容器内模型文件所在的路径
+    --served-model-name qwen3-14b \设置对外提供服务时的模型名称
+    --tensor-parallel-size 2 \  将模型在2个GPU上进行张量并行处理
+    --host 0.0.0.0 \ 设置服务ip
+    --port 8000 \  设置监听端口
+    --gpu-memory-utilization 0.9 \ 将GPU内存的使用率上限设置为80%
+    --dtype fp16 \ 设置模型参数的数据类型
+    --trust-remote-code \ 允许执行模型附带的自定义代码
+    --enable-chunked-prefill \ 启用分块与填充
+    --enable-prefix-caching  \ 启用前缀缓存
+    --max_model_len 10240 \ 最大模型长度
+    --swap_space 8 \ 交换空间设置为8G
+    --enable_chunked_prefill \ 启用分块预填充
+    --enable_cuda_graph \ 启用CUDA图优化
+    
+ =========================================================
+ pip install evalscope[perf] -U
+ 
+ evalscope perf \
+  --parallel 1 10 50 100 200 \请求的并发数，可以传入多个值，用空格隔开
+  --number 10 20 100 200 400 \发出的请求的总数量,与parallel一一对应
+  --model Qwen2.5-0.5B-Instruct \使用的模型名称
+  --url http://127.0.0.1:8801/v1/chat/completions \请求的URL地址
+  --api openai \使用的API服务，默认为openai
+  --dataset random \数据集名称，此处为random，表示随机生成数据集
+  --max-tokens 1024 \
+  --min-tokens 1024 \
+  --prefix-length 0 \promt的前缀长度，默认为0
+  --min-prompt-length 1024 \最小输入prompt长度，默认为0
+  --max-prompt-length 1024 \最大输入prompt长度，默认为131072
+  --tokenizer-path Qwen/Qwen2.5-0.5B-Instruct \ 模型的tokenizer路径，用于计算token数量
+  --extra-args '{"ignore_eos": true}' \请求中的额外的参数，传入json格式的字符串，例如{"ignore_eos": true}表示忽略结束token
+
+=============================================================
+curl httl://127.0.0.1:8080/v1/chat/completions \
+ -H "Content-Type: application/json" \
+ -d '{
+    "model": "modelname" , 
+    "messages"" [
+    	{"role":"system", "content": ""},
+    	{"role":"user", "content": ""}
+    ], 
+    "max_tokens": 8192,
+    "temperature": 0.6,
+    "stream": false
+ 
+ }'
+
